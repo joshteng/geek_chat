@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Geeks Chat App</title>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="custom.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container chat-body">
+      <div class="row chatroom bordered">
+        <div class="col-md-3">Geeks in Chat</div>
+        <div class="col-md-9 chatarea">
+          <ul id="chatbox">
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="push"></div>
+  </div>
+
+
+  <div class="footer">
+    <div class="container">
+      <form id="chat_form">
+        <textarea id="chat_input"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var insertMessage = function(message, name){
+      var li;
+      if (name){
+        li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '</li>'
+      }else{
+        li = '<li class="message self">' + message + '</li>'
+      }
+      $('#chatbox').append(li);
+    }
+
+    $(document).ready(function(){
+
+      var socket = io.connect("169.254.235.163:8080");
+
+      var formSubmit = function(){
+        var chatInput = $('#chat_input');
+        var message = chatInput.val();
+        chatInput.val("");
+        insertMessage(message);
+        socket.emit('message', message);
+      }
+
+      socket.on('connect', function(data){
+        var nickname;
+        while (!nickname){
+          nickname = prompt("What is your nickname?");
+          socket.emit('join', nickname);
+        }
+      });
+
+      //to allow enter to work
+      $('#chat_input').keypress(function(e){
+        if(e.keyCode == 13 && !e.shiftKey) {
+         e.preventDefault();
+         formSubmit();
+        }
+      });
+
+      $('#chat_form').submit(function(e){
+        e.preventDefault();
+        formSubmit();
+      });
+
+      socket.on('message', function(data){
+        insertMessage(data.message, data.nickname);
+      });
+    });
+
+  </script>
+</body>
+</html>

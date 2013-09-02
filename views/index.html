@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <title>Geeks Chat App</title>
-  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="jquery-1.10.1.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="bootstrap.min.css">
   <link rel="stylesheet" href="custom.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 </head>
@@ -33,27 +33,10 @@
   </div>
 
   <script type="text/javascript">
-    var insertMessage = function(message, name){
-      var li;
-      if (name){
-        li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '</li>'
-      }else{
-        li = '<li class="message self">' + message + '</li>'
-      }
-      $('#chatbox').append(li);
-    }
 
     $(document).ready(function(){
 
-      var socket = io.connect("169.254.235.163:8080");
-
-      var formSubmit = function(){
-        var chatInput = $('#chat_input');
-        var message = chatInput.val();
-        chatInput.val("");
-        insertMessage(message);
-        socket.emit('message', message);
-      }
+      var socket = io.connect("192.168.0.108:8080");
 
       socket.on('connect', function(data){
         var nickname;
@@ -61,6 +44,10 @@
           nickname = prompt("What is your nickname?");
           socket.emit('join', nickname);
         }
+      });
+
+      socket.on('message', function(data){
+        insertMessage(data.message, data.nickname);
       });
 
       //to allow enter to work
@@ -76,10 +63,26 @@
         formSubmit();
       });
 
-      socket.on('message', function(data){
-        insertMessage(data.message, data.nickname);
-      });
+      var insertMessage = function(message, name){
+        var li;
+        if (name){
+          li = '<li class="message"><span class="name">' + name + ':</span><br />' + message + '</li>'
+        }else{
+          li = '<li class="message self">' + message + '</li>'
+        }
+        $('#chatbox').append(li);
+      }
+
+      var formSubmit = function(){
+        var chatInput = $('#chat_input');
+        var message = chatInput.val();
+        chatInput.val("");
+        insertMessage(message);
+        socket.emit('message', message);
+      }
     });
+
+
 
   </script>
 </body>

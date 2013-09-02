@@ -1,50 +1,59 @@
 //our main application
 
-//requiring necessary modules
+//***********requiring necessary modules***************//
 var express = require("express");
 var socket = require("socket.io");
-var redis = require("redis");
-
-//initializing our application
-var app = express();
 var http = require('http');
-var server = http.createServer(app).listen(8080);
-var io = require('socket.io').listen(server);
-var redisClient = redis.createClient();
+var socketIO = require('socket.io');
 
-//custom variables
+
+//***********initializing our application***************//
+var app = express();
+var server = http.createServer(app).listen(8080);
+var io = socketIO.listen(server);
+
+
+//***********app settings***************//
 var settings = { 
   'view_directory': '/views', 
-  'stylesheets_directory': '/assets/css'
+  'stylesheets_directory': '/assets/css',
+  'javascript_directory': '/assets/js'
 }
 
-//express routing
+
+//***********express routing***************//
 app.get('/', function(request, response){
   response.sendfile(__dirname + settings.view_directory + '/index.html')
 });
 
-//to serve stylesheets
-//should use web server like apache or use some CDN to serve static assets
+//to serve stylesheets and script files
+//should use web server like apache or use some CDN to serve static assets!!!! This is no good!
 app.get('/*.css', function(request, response){
   response.sendfile(__dirname + settings.stylesheets_directory + request.originalUrl)
 });
 
-io.sockets.on('connection', function(client){
-  console.log("Client connected");
+app.get('/*.js', function(request, response){
+  response.sendfile(__dirname + settings.javascript_directory + request.originalUrl)
+});
 
+
+
+//***********socket.io code to handle websocket connections***************//
+io.sockets.on('connection', function(client){
+  //when a new client joins
   client.on('join', function(data){
+    //set the client's nickname.. probably stored in cookie/session
     client.set('nickname', data);
-    //send old messages from redis
-    //broadcast arrival of this person
-    //store person in database
   });
 
   client.on('message', function(data){
+    //get the message sender's nickname
     client.get('nickname', function(err, nickname){
-      //broadcast the message
+      //broadcast the message to every client connected
       client.broadcast.emit('message', { message: data, nickname: nickname });
     });
-    //store message in database
   });
 
 });
+
+//the events ie. join, message are custom defined events. as long as they match up with frontend code, that works!

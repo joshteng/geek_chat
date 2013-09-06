@@ -33,15 +33,13 @@
   </div>
 
   <script type="text/javascript">
-
     $(document).ready(function(){
+      var socket = io.connect("192.168.10.116:8080");
 
-      var socket = io.connect("192.168.0.108:8080");
-
-      socket.on('connect', function(data){
+      socket.on('connect', function(){
         var nickname;
-        while (!nickname){
-          nickname = prompt("What is your nickname?");
+        while(!nickname){
+          nickname = prompt("what is your nickname?");
           socket.emit('join', nickname);
         }
       });
@@ -50,7 +48,8 @@
         insertMessage(data.message, data.nickname);
       });
 
-      //to allow enter to work
+
+
       $('#chat_input').keypress(function(e){
         if(e.keyCode == 13 && !e.shiftKey) {
          e.preventDefault();
@@ -58,10 +57,19 @@
         }
       });
 
-      $('#chat_form').submit(function(e){
+      var formSubmit = function(){
+        var chatInput = $('#chat_input');
+        var message = chatInput.val();
+        chatInput.val("");
+        insertMessage(message);
+        socket.emit('message', message);
+      }
+
+      $('#chat_form').on('submit', function(e){
         e.preventDefault();
         formSubmit();
       });
+
 
 
       //this method does not prevent XSS!!
@@ -74,18 +82,8 @@
         }
         $('#chatbox').append(li);
       }
-
-      var formSubmit = function(){
-        var chatInput = $('#chat_input');
-        var message = chatInput.val();
-        chatInput.val("");
-        insertMessage(message);
-        socket.emit('message', message);
-      }
-    });
-
-
-
+    })
   </script>
+
 </body>
 </html>

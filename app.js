@@ -1,31 +1,23 @@
 //require necessary modules
-var http = require('http');
-var express = require('express');
-var socketIO = require("socket.io");
+var http = require('http')
+  , express = require('express')
+  , socketIO = require("socket.io")
+  , path = require('path');
 
 //initialize our application
 var app = express();
-var server = http.createServer(app).listen(8080);
+app.use(express.static(path.join(__dirname, 'assets')));
+var server = http.createServer(app).listen(3000);
 var io = socketIO.listen(server);
 
 //settings
 var settings = {
-  'view_directory': '/views',
-  'stylesheets_directory': '/assets/css',
-  'javascript_directory': '/assets/js'
+  'view_directory': '/views'
 }
 
 
 app.get('/', function(request, response){
   response.sendfile(__dirname + settings.view_directory + '/index.html')
-});
-
-app.get('/*.css', function(request, response){
-  response.sendfile(__dirname + settings.stylesheets_directory + request.originalUrl)
-});
-
-app.get('/*.js', function(request, response){
-  response.sendfile(__dirname + settings.javascript_directory + request.originalUrl)
 });
 
 
